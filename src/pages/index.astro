@@ -324,15 +324,27 @@ const faq = [
     <section aria-label="Results" class="mt-6">
       <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h2 class="text-lg font-semibold text-stone-900">Results</h2>
-        <button
-          type="button"
-          id="copy-link"
-          class="inline-flex min-h-11 items-center gap-2 rounded-lg bg-amber-600 px-4 text-base font-semibold text-white shadow-sm transition hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-300"
-        >
-          <span aria-hidden="true">🔗</span>
-          <span data-copy-label>Copy Shareable Link</span>
-        </button>
+        <div class="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            id="keep-awake"
+            aria-pressed="false"
+            class="inline-flex min-h-11 items-center gap-2 rounded-lg border border-stone-300 bg-stone-50 px-4 text-base font-semibold text-stone-700 shadow-sm transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-amber-300"
+          >
+            <span aria-hidden="true" data-keep-awake-icon>🌙</span>
+            <span data-keep-awake-label>Keep Screen Awake</span>
+          </button>
+          <button
+            type="button"
+            id="copy-link"
+            class="inline-flex min-h-11 items-center gap-2 rounded-lg bg-amber-600 px-4 text-base font-semibold text-white shadow-sm transition hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-300"
+          >
+            <span aria-hidden="true">🔗</span>
+            <span data-copy-label>Copy Shareable Link</span>
+          </button>
+        </div>
       </div>
+      <p id="keep-awake-status" role="status" aria-live="polite" class="mb-3 text-xs text-stone-500"></p>
 
       <dl class="grid grid-cols-2 gap-3 sm:grid-cols-5">
         <div class="rounded-xl border border-stone-200 bg-white p-3 shadow-sm">
@@ -791,6 +803,88 @@ const faq = [
           }
         });
       }
+
+      // --- Keep Screen Awake (Wake Lock) ---
+      const wakeLockButton = document.getElementById("keep-awake");
+      const wakeLockStatus = document.getElementById("keep-awake-status");
+      let wakeLockSentinel: WakeLockSentinel | null = null;
+      let wakeLockEnabled = false;
+
+      function setWakeLockUI(active: boolean) {
+        if (!wakeLockButton) return;
+        wakeLockButton.setAttribute("aria-pressed", String(active));
+        const label = wakeLockButton.querySelector("[data-keep-awake-label]");
+        if (label) {
+          label.textContent = active ? "Keep Screen Awake: On" : "Keep Screen Awake";
+        }
+        const icon = wakeLockButton.querySelector("[data-keep-awake-icon]");
+        if (icon) {
+          icon.textContent = active ? "☀️" : "🌙";
+        }
+      }
+
+      function setWakeLockStatus(message: string, isError?: boolean) {
+        if (!wakeLockStatus) return;
+        wakeLockStatus.textContent = message;
+        wakeLockStatus.classList.toggle("text-red-600", Boolean(isError));
+      }
+
+      async function acquireWakeLock() {
+        if (!("wakeLock" in navigator)) {
+          setWakeLockStatus(
+            "Wake Lock is not supported in this browser.",
+            true
+          );
+          return;
+        }
+        try {
+          wakeLockSentinel = await navigator.wakeLock.request("screen");
+          wakeLockSentinel.addEventListener("release", () => {
+            wakeLockSentinel = null;
+            if (wakeLockEnabled) {
+              setWakeLockUI(false);
+              setWakeLockStatus("Screen wake lock was released.");
+            }
+          });
+          wakeLockEnabled = true;
+          setWakeLockUI(true);
+          setWakeLockStatus("Screen will stay awake while this tab is visible.");
+        } catch (err) {
+          wakeLockSentinel = null;
+          wakeLockEnabled = false;
+          setWakeLockUI(false);
+          setWakeLockStatus(
+            "Could not keep the screen awake (denied or unavailable).",
+            true
+          );
+        }
+      }
+
+      function releaseWakeLock() {
+        wakeLockEnabled = false;
+        setWakeLockUI(false);
+        setWakeLockStatus("");
+        if (wakeLockSentinel) {
+          wakeLockSentinel.release().catch(() => {});
+          wakeLockSentinel = null;
+        }
+      }
+
+      if (wakeLockButton) {
+        wakeLockButton.addEventListener("click", () => {
+          if (wakeLockEnabled) {
+            releaseWakeLock();
+          } else {
+            acquireWakeLock();
+          }
+        });
+      }
+
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible" && wakeLockEnabled) {
+          acquireWakeLock();
+        }
+      });
 
       restoreFromUrl();
     </script>
