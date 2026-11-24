@@ -1,0 +1,23 @@
+# Project Rules: Baker's Percentage & Dough Hydration Calculator
+
+## Tech Stack & Constraints
+- Static Astro build only: no server endpoints, no databases, no external runtime APIs or third-party analytics scripts.
+- Styling: Tailwind CSS v4 via `@tailwindcss/vite` (`astro.config.mjs`). Always import `../styles/global.css` in shared layouts or pages so Tailwind styles are included in every page's module graph.
+- Keep all pure calculation logic in `src/utils/bakerMath.ts` using strict TypeScript/ES6.
+- Keep client-side interactivity lightweight with vanilla TypeScript/JavaScript inside `<script>` tags and instant recalculation on input changes.
+
+## Baker's Percentage & Hydration Math Rules
+- Total flour weight is the `100%` baseline: `ingredientPercent = (ingredientGrams / totalFlourGrams) * 100`.
+- When calculating **True Dough Hydration** with starter/levain (`starterGrams` and `starterHydrationPercent`, default `100`):
+  - `starterFlourGrams = starterGrams / (1 + starterHydrationPercent / 100)`
+  - `starterWaterGrams = starterGrams - starterFlourGrams`
+  - Include starter flour in total flour and starter water in total water when computing true hydration percentage.
+- Support both directions:
+  1. **Grams -> Baker's Percentages & True Hydration**
+  2. **Baker's Percentages + Target Flour Weight (or Target Dough Weight) -> Grams**
+- Guard against division by zero, `NaN`, or negative numbers by returning safe fallback values.
+
+## SEO & UX Rules
+- Output semantic HTML (`<main>`, `<section>`, `<table>`, clear heading hierarchy) and include `FAQPage` JSON-LD structured data on calculator pages.
+- Sync calculator inputs with URL query parameters so users can copy/share a link with their exact formula.
+- Do not modify files outside the current milestone unless explicitly requested.
