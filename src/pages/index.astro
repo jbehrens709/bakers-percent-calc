@@ -1,16 +1,690 @@
 ---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const faq = [
+  {
+    question: 'What is baker\'s percentage?',
+    answer:
+      "Baker's percentage expresses every ingredient as a percentage of the total flour weight. Flour is always 100%, so a 75% hydration dough has 75 g of water for every 100 g of flour. It lets you scale any recipe up or down without changing its character.",
+  },
+  {
+    question: 'What is true dough hydration?',
+    answer:
+      'True hydration counts the flour and water hidden inside your starter or levain. A 100% starter is half flour and half water, so it adds both to the dough. This calculator splits the starter into flour and water and includes them in the true hydration percentage.',
+  },
+  {
+    question: 'How do I scale a recipe to a target dough weight?',
+    answer:
+      'Switch to "Percentages to Grams" mode, choose "Total Dough Weight (g)", and enter the dough weight you want. The calculator solves for the flour weight that makes the full formula (flour, water, salt, starter, and fat) add up to your target, then converts every percentage to grams.',
+  },
+  {
+    question: 'Does salt and oil count toward hydration?',
+    answer:
+      'No. Hydration is water divided by flour only. Salt and oil/fat are tracked in the formula and included in the total dough weight, but they never change the hydration percentage.',
+  },
+];
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<BaseLayout
+  title="Baker's Percentage & Sourdough Hydration Calculator"
+  description="Convert recipe weights to baker's percentages, calculate true sourdough hydration with starter, and scale formulas to a target flour or dough weight."
+>
+  <slot name="head">
+    <script type="application/ld+json" set:html={JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: faq.map((item) => ({
+        '@type': 'Question',
+        name: item.question,
+        acceptedAnswer: { '@type': 'Answer', text: item.answer },
+      })),
+    })} />
+  </slot>
+
+  <main class="mx-auto w-full max-w-3xl px-4 py-8 sm:py-12">
+    <header class="mb-8 text-center">
+      <p class="mb-2 text-xs font-semibold uppercase tracking-widest text-amber-700">Baker's Math</p>
+      <h1 class="text-3xl font-bold tracking-tight text-stone-900 sm:text-4xl">
+        Baker's Percentage &amp; Sourdough Hydration Calculator
+      </h1>
+      <p class="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-stone-600 sm:text-base">
+        Convert recipe weights to baker's percentages, find your true hydration with starter,
+        and scale any formula to a target flour or dough weight.
+      </p>
+    </header>
+
+    <section aria-label="Calculator mode" class="mb-6">
+      <div role="tablist" aria-label="Calculation mode" class="grid grid-cols-2 gap-1 rounded-xl bg-stone-200 p-1">
+        <button
+          type="button"
+          role="tab"
+          id="tab-weights"
+          aria-selected="true"
+          aria-controls="panel-weights"
+          data-mode-tab="weights"
+          class="rounded-lg px-3 py-2.5 text-sm font-semibold text-stone-600 transition hover:text-stone-900"
+        >
+          Weights to Percentages
+        </button>
+        <button
+          type="button"
+          role="tab"
+          id="tab-percentages"
+          aria-selected="false"
+          aria-controls="panel-percentages"
+          data-mode-tab="percentages"
+          class="rounded-lg px-3 py-2.5 text-sm font-semibold text-stone-600 transition hover:text-stone-900"
+        >
+          Percentages to Grams
+        </button>
+      </div>
+    </section>
+
+    <section
+      id="panel-weights"
+      role="tabpanel"
+      aria-labelledby="tab-weights"
+      class="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm sm:p-6"
+    >
+      <h2 class="mb-4 text-lg font-semibold text-stone-900">Enter your recipe weights (grams)</h2>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <label class="block">
+          <span class="mb-1 block text-sm font-medium text-stone-700">Flour (g)</span>
+          <input
+            type="number"
+            inputmode="decimal"
+            min="0"
+            step="any"
+            placeholder="500"
+            data-input="flour"
+            class="w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-base text-stone-900 shadow-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
+          />
+        </label>
+        <label class="block">
+          <span class="mb-1 block text-sm font-medium text-stone-700">Water (g)</span>
+          <input
+            type="number"
+            inputmode="decimal"
+            min="0"
+            step="any"
+            placeholder="350"
+            data-input="water"
+            class="w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-base text-stone-900 shadow-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
+          />
+        </label>
+        <label class="block">
+          <span class="mb-1 block text-sm font-medium text-stone-700">Salt (g)</span>
+          <input
+            type="number"
+            inputmode="decimal"
+            min="0"
+            step="any"
+            placeholder="10"
+            data-input="salt"
+            class="w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-base text-stone-900 shadow-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
+          />
+        </label>
+        <label class="block">
+          <span class="mb-1 block text-sm font-medium text-stone-700">Starter / Levain (g)</span>
+          <input
+            type="number"
+            inputmode="decimal"
+            min="0"
+            step="any"
+            placeholder="100"
+            data-input="starter"
+            class="w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-base text-stone-900 shadow-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
+          />
+        </label>
+        <label class="block">
+          <span class="mb-1 block text-sm font-medium text-stone-700">Starter Hydration (%)</span>
+          <input
+            type="number"
+            inputmode="decimal"
+            min="0"
+            step="any"
+            value="100"
+            data-input="starterHydration"
+            class="w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-base text-stone-900 shadow-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
+          />
+        </label>
+        <label class="block">
+          <span class="mb-1 block text-sm font-medium text-stone-700">Oil / Fat (g, optional)</span>
+          <input
+            type="number"
+            inputmode="decimal"
+            min="0"
+            step="any"
+            placeholder="0"
+            data-input="fat"
+            class="w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-base text-stone-900 shadow-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
+          />
+        </label>
+      </div>
+    </section>
+
+    <section
+      id="panel-percentages"
+      role="tabpanel"
+      aria-labelledby="tab-percentages"
+      class="hidden rounded-2xl border border-stone-200 bg-white p-4 shadow-sm sm:p-6"
+    >
+      <h2 class="mb-4 text-lg font-semibold text-stone-900">Enter your formula (baker's %)</h2>
+      <div class="mb-5">
+        <span class="mb-1 block text-sm font-medium text-stone-700">Scale by</span>
+        <div role="radiogroup" aria-label="Scaling basis" class="grid grid-cols-2 gap-1 rounded-xl bg-stone-200 p-1">
+          <button
+            type="button"
+            role="radio"
+            aria-checked="true"
+            data-scale-tab="flour"
+            class="rounded-lg px-3 py-2 text-sm font-semibold text-stone-600 transition hover:text-stone-900"
+          >
+            Base Flour Weight (g)
+          </button>
+          <button
+            type="button"
+            role="radio"
+            aria-checked="false"
+            data-scale-tab="totalDough"
+            class="rounded-lg px-3 py-2 text-sm font-semibold text-stone-600 transition hover:text-stone-900"
+          >
+            Total Dough Weight (g)
+          </button>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <label class="block" data-target-label>
+          <span class="mb-1 block text-sm font-medium text-stone-700" data-target-text>Base Flour Weight (g)</span>
+          <input
+            type="number"
+            inputmode="decimal"
+            min="0"
+            step="any"
+            placeholder="500"
+            data-input="target"
+            class="w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-base text-stone-900 shadow-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
+          />
+        </label>
+        <label class="block">
+          <span class="mb-1 block text-sm font-medium text-stone-700">Water (%)</span>
+          <input
+            type="number"
+            inputmode="decimal"
+            min="0"
+            step="any"
+            placeholder="75"
+            data-input="pctWater"
+            class="w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-base text-stone-900 shadow-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
+          />
+        </label>
+        <label class="block">
+          <span class="mb-1 block text-sm font-medium text-stone-700">Salt (%)</span>
+          <input
+            type="number"
+            inputmode="decimal"
+            min="0"
+            step="any"
+            placeholder="2"
+            data-input="pctSalt"
+            class="w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-base text-stone-900 shadow-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
+          />
+        </label>
+        <label class="block">
+          <span class="mb-1 block text-sm font-medium text-stone-700">Starter / Levain (%)</span>
+          <input
+            type="number"
+            inputmode="decimal"
+            min="0"
+            step="any"
+            placeholder="20"
+            data-input="pctStarter"
+            class="w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-base text-stone-900 shadow-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
+          />
+        </label>
+        <label class="block">
+          <span class="mb-1 block text-sm font-medium text-stone-700">Starter Hydration (%)</span>
+          <input
+            type="number"
+            inputmode="decimal"
+            min="0"
+            step="any"
+            value="100"
+            data-input="starterHydration"
+            class="w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-base text-stone-900 shadow-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
+          />
+        </label>
+        <label class="block">
+          <span class="mb-1 block text-sm font-medium text-stone-700">Oil / Fat (%)</span>
+          <input
+            type="number"
+            inputmode="decimal"
+            min="0"
+            step="any"
+            placeholder="0"
+            data-input="pctFat"
+            class="w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-base text-stone-900 shadow-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
+          />
+        </label>
+      </div>
+      <p class="mt-4 text-xs leading-relaxed text-stone-500">
+        In "Total Dough Weight" mode, the calculator solves for the flour weight so that the
+        entire formula (flour + water + salt + starter + fat) equals your target dough weight.
+      </p>
+      <p class="mt-4 text-xs leading-relaxed text-stone-500">
+        Starter hydration is the water-to-flour ratio of your starter (100% = equal parts).
+        Leave optional fields blank if you don't use them.
+      </p>
+    </section>
+
+
+    <section aria-label="Results" class="mt-6">
+      <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <h2 class="text-lg font-semibold text-stone-900">Results</h2>
+        <button
+          type="button"
+          id="copy-link"
+          class="inline-flex items-center gap-2 rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-300"
+        >
+          <span aria-hidden="true">🔗</span>
+          <span data-copy-label>Copy Shareable Link</span>
+        </button>
+      </div>
+
+      <dl class="grid grid-cols-2 gap-3 sm:grid-cols-5">
+        <div class="rounded-xl border border-stone-200 bg-white p-3 shadow-sm">
+          <dt class="text-xs font-medium uppercase tracking-wide text-stone-500">Base Flour</dt>
+          <dd class="mt-1 text-lg font-bold text-stone-900" data-stat="baseFlour">—</dd>
+        </div>
+        <div class="rounded-xl border border-stone-200 bg-white p-3 shadow-sm">
+          <dt class="text-xs font-medium uppercase tracking-wide text-stone-500">Total Flour</dt>
+          <dd class="mt-1 text-lg font-bold text-stone-900" data-stat="totalFlour">—</dd>
+        </div>
+        <div class="rounded-xl border border-stone-200 bg-white p-3 shadow-sm">
+          <dt class="text-xs font-medium uppercase tracking-wide text-stone-500">Total Dough</dt>
+          <dd class="mt-1 text-lg font-bold text-stone-900" data-stat="totalDough">—</dd>
+        </div>
+        <div class="rounded-xl border border-stone-200 bg-white p-3 shadow-sm">
+          <dt class="text-xs font-medium uppercase tracking-wide text-stone-500">Apparent Hydration</dt>
+          <dd class="mt-1 text-lg font-bold text-stone-900" data-stat="apparentHydration">—</dd>
+        </div>
+        <div class="rounded-xl border border-amber-200 bg-amber-50 p-3 shadow-sm">
+          <dt class="text-xs font-medium uppercase tracking-wide text-amber-700">True Hydration</dt>
+          <dd class="mt-1 text-lg font-bold text-amber-900" data-stat="trueHydration">—</dd>
+        </div>
+      </dl>
+
+      <div class="mt-4 overflow-x-auto rounded-2xl border border-stone-200 bg-white shadow-sm">
+        <table class="w-full min-w-[480px] text-left text-sm">
+          <caption class="sr-only">Ingredient breakdown in grams and baker's percentages</caption>
+          <thead>
+            <tr class="border-b border-stone-200 bg-stone-50 text-xs uppercase tracking-wide text-stone-500">
+              <th scope="col" class="px-4 py-3 font-semibold">Ingredient</th>
+              <th scope="col" class="px-4 py-3 text-right font-semibold">Grams</th>
+              <th scope="col" class="px-4 py-3 text-right font-semibold">Baker's %</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-stone-100 text-stone-800">
+            <tr>
+              <th scope="row" class="px-4 py-3 font-medium">Flour (base)</th>
+              <td class="px-4 py-3 text-right tabular-nums" data-row="flour">—</td>
+              <td class="px-4 py-3 text-right tabular-nums" data-row="flourPct">—</td>
+            </tr>
+            <tr>
+              <th scope="row" class="px-4 py-3 font-medium">Water</th>
+              <td class="px-4 py-3 text-right tabular-nums" data-row="water">—</td>
+              <td class="px-4 py-3 text-right tabular-nums" data-row="waterPct">—</td>
+            </tr>
+            <tr>
+              <th scope="row" class="px-4 py-3 font-medium">Salt</th>
+              <td class="px-4 py-3 text-right tabular-nums" data-row="salt">—</td>
+              <td class="px-4 py-3 text-right tabular-nums" data-row="saltPct">—</td>
+            </tr>
+            <tr>
+              <th scope="row" class="px-4 py-3 font-medium">Starter / Levain</th>
+              <td class="px-4 py-3 text-right tabular-nums" data-row="starter">—</td>
+              <td class="px-4 py-3 text-right tabular-nums" data-row="starterPct">—</td>
+            </tr>
+            <tr>
+              <th scope="row" class="px-4 py-3 font-medium">Starter flour (included)</th>
+              <td class="px-4 py-3 text-right tabular-nums" data-row="starterFlour">—</td>
+              <td class="px-4 py-3 text-right tabular-nums" data-row="starterFlourPct">—</td>
+            </tr>
+            <tr>
+              <th scope="row" class="px-4 py-3 font-medium">Starter water (included)</th>
+              <td class="px-4 py-3 text-right tabular-nums" data-row="starterWater">—</td>
+              <td class="px-4 py-3 text-right tabular-nums" data-row="starterWaterPct">—</td>
+            </tr>
+            <tr>
+              <th scope="row" class="px-4 py-3 font-medium">Oil / Fat</th>
+              <td class="px-4 py-3 text-right tabular-nums" data-row="fat">—</td>
+              <td class="px-4 py-3 text-right tabular-nums" data-row="fatPct">—</td>
+            </tr>
+            <tr class="bg-stone-50 font-semibold">
+              <th scope="row" class="px-4 py-3">Total dough</th>
+              <td class="px-4 py-3 text-right tabular-nums" data-row="totalDough">—</td>
+              <td class="px-4 py-3 text-right tabular-nums" data-row="totalPct">—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="mt-3 text-xs leading-relaxed text-stone-500" data-hydration-note>
+        True hydration includes the flour and water inside your starter.
+      </p>
+    </section>
+
+    <section aria-labelledby="faq-heading" class="mt-10">
+      <h2 id="faq-heading" class="mb-4 text-xl font-semibold text-stone-900">Frequently asked questions</h2>
+      <div class="space-y-3">
+        {
+          faq.map((item) => (
+            <details class="group rounded-xl border border-stone-200 bg-white p-4 shadow-sm">
+              <summary class="cursor-pointer list-none text-sm font-semibold text-stone-800 marker:content-none">
+                <span class="mr-2 inline-block text-amber-600 transition-transform group-open:rotate-90" aria-hidden="true">
+                  ›
+                </span>
+                {item.question}
+              </summary>
+              <p class="mt-3 text-sm leading-relaxed text-stone-600">{item.answer}</p>
+            </details>
+          ))
+        }
+      </div>
+    </section>
+    <script>
+      import {
+        calculateFromWeights,
+        calculateFromPercentages,
+        type WeightsResult,
+      } from "../utils/bakerMath";
+
+      type Mode = "weights" | "percentages";
+      type ScaleMode = "flour" | "totalDough";
+
+      const weightsPanel = document.getElementById("panel-weights");
+      const percentagesPanel = document.getElementById("panel-percentages");
+      const modeTabs = Array.from(document.querySelectorAll<HTMLElement>("[data-mode-tab]"));
+      const scaleTabs = Array.from(document.querySelectorAll<HTMLElement>("[data-scale-tab]"));
+      const targetText = document.querySelector<HTMLElement>("[data-target-text]");
+      const copyButton = document.querySelector<HTMLButtonElement>("#copy-link");
+      const copyLabel = document.querySelector<HTMLElement>("[data-copy-label]");
+
+      // `starterHydration` exists in BOTH panels, so every input query is
+      // scoped to its own panel to avoid grabbing the wrong element.
+      const w = {
+        flour: weightsPanel?.querySelector<HTMLInputElement>("[data-input='flour']"),
+        water: weightsPanel?.querySelector<HTMLInputElement>("[data-input='water']"),
+        salt: weightsPanel?.querySelector<HTMLInputElement>("[data-input='salt']"),
+        starter: weightsPanel?.querySelector<HTMLInputElement>("[data-input='starter']"),
+        starterHydration: weightsPanel?.querySelector<HTMLInputElement>("[data-input='starterHydration']"),
+        fat: weightsPanel?.querySelector<HTMLInputElement>("[data-input='fat']"),
+      };
+      const p = {
+        target: percentagesPanel?.querySelector<HTMLInputElement>("[data-input='target']"),
+        water: percentagesPanel?.querySelector<HTMLInputElement>("[data-input='pctWater']"),
+        salt: percentagesPanel?.querySelector<HTMLInputElement>("[data-input='pctSalt']"),
+        starter: percentagesPanel?.querySelector<HTMLInputElement>("[data-input='pctStarter']"),
+        starterHydration: percentagesPanel?.querySelector<HTMLInputElement>("[data-input='starterHydration']"),
+        fat: percentagesPanel?.querySelector<HTMLInputElement>("[data-input='pctFat']"),
+      };
+
+      let mode: Mode = "weights";
+      let scaleMode: ScaleMode = "flour";
+
+      function readNumber(el: HTMLInputElement | null | undefined): number {
+        if (!el) return 0;
+        const value = Number.parseFloat(el.value);
+        return Number.isFinite(value) && value >= 0 ? value : 0;
+      }
+
+      function setText(selector: string, value: string) {
+        document.querySelectorAll<HTMLElement>(selector).forEach((el) => {
+          el.textContent = value;
+        });
+      }
+
+      function formatGrams(grams: number): string {
+        return `${Math.round(grams * 10) / 10} g`;
+      }
+
+      function formatPercent(percent: number): string {
+        return `${Math.round(percent * 10) / 10}%`;
+      }
+
+      function percentOf(part: number, whole: number): number {
+        if (!Number.isFinite(part) || !Number.isFinite(whole) || whole === 0) return 0;
+        return (part / whole) * 100;
+      }
+
+      interface BaseWeights {
+        flour: number;
+        water: number;
+        salt: number;
+        starter: number;
+        fat: number;
+      }
+
+      function render(result: WeightsResult, base: BaseWeights) {
+        setText("[data-stat='baseFlour']", formatGrams(base.flour));
+        setText("[data-stat='totalFlour']", formatGrams(result.totalFlourGrams));
+        setText("[data-stat='totalDough']", formatGrams(result.totalDoughWeightGrams));
+        setText("[data-stat='apparentHydration']", formatPercent(result.apparentHydrationPercent));
+        setText("[data-stat='trueHydration']", formatPercent(result.trueHydrationPercent));
+
+        setText("[data-row='flour']", formatGrams(base.flour));
+        setText("[data-row='flourPct']", formatPercent(result.flourPercent));
+        setText("[data-row='water']", formatGrams(base.water));
+        setText("[data-row='waterPct']", formatPercent(result.waterPercent));
+        setText("[data-row='salt']", formatGrams(base.salt));
+        setText("[data-row='saltPct']", formatPercent(result.saltPercent));
+        setText("[data-row='starter']", formatGrams(base.starter));
+        setText("[data-row='starterPct']", formatPercent(result.starterPercent));
+        setText("[data-row='starterFlour']", formatGrams(result.starterFlourGrams));
+        setText("[data-row='starterFlourPct']", formatPercent(percentOf(result.starterFlourGrams, base.flour)));
+        setText("[data-row='starterWater']", formatGrams(result.starterWaterGrams));
+        setText("[data-row='starterWaterPct']", formatPercent(percentOf(result.starterWaterGrams, base.flour)));
+        setText("[data-row='fat']", formatGrams(base.fat));
+        setText("[data-row='fatPct']", formatPercent(result.oilPercent));
+        setText("[data-row='totalDough']", formatGrams(result.totalDoughWeightGrams));
+        setText(
+          "[data-row='totalPct']",
+          formatPercent(
+            result.flourPercent + result.waterPercent + result.saltPercent + result.starterPercent + result.oilPercent
+          )
+        );
+      }
+
+      function updateFromWeights() {
+        const base: BaseWeights = {
+          flour: readNumber(w.flour),
+          water: readNumber(w.water),
+          salt: readNumber(w.salt),
+          starter: readNumber(w.starter),
+          fat: readNumber(w.fat),
+        };
+        const result = calculateFromWeights({
+          flourGrams: base.flour,
+          waterGrams: base.water,
+          saltGrams: base.salt,
+          starterGrams: base.starter,
+          starterHydrationPercent: readNumber(w.starterHydration) || 100,
+          oilGrams: base.fat,
+        });
+        render(result, base);
+      }
+
+      function updateFromPercentages() {
+        const starterHydration = readNumber(p.starterHydration) || 100;
+        const pct = calculateFromPercentages({
+          targetMode: scaleMode,
+          targetWeightGrams: readNumber(p.target),
+          waterPercent: readNumber(p.water),
+          saltPercent: readNumber(p.salt),
+          starterPercent: readNumber(p.starter),
+          starterHydrationPercent: starterHydration,
+          oilPercent: readNumber(p.fat),
+        });
+        // Re-run the weights calculation on the solved grams so the full
+        // starter flour/water breakdown and apparent hydration are available.
+        const result = calculateFromWeights({
+          flourGrams: pct.flourGrams,
+          waterGrams: pct.waterGrams,
+          saltGrams: pct.saltGrams,
+          starterGrams: pct.starterGrams,
+          starterHydrationPercent: starterHydration,
+          oilGrams: pct.oilGrams,
+        });
+        render(result, {
+          flour: pct.flourGrams,
+          water: pct.waterGrams,
+          salt: pct.saltGrams,
+          starter: pct.starterGrams,
+          fat: pct.oilGrams,
+        });
+      }
+
+      function recalculate() {
+        if (mode === "weights") {
+          updateFromWeights();
+        } else {
+          updateFromPercentages();
+        }
+        syncUrl();
+      }
+      function syncUrl() {
+        const params = new URLSearchParams();
+        params.set("mode", mode);
+        if (mode === "weights") {
+          params.set("flour", String(readNumber(w.flour)));
+          params.set("water", String(readNumber(w.water)));
+          params.set("salt", String(readNumber(w.salt)));
+          params.set("starter", String(readNumber(w.starter)));
+          params.set("starterHydration", String(readNumber(w.starterHydration) || 100));
+          params.set("fat", String(readNumber(w.fat)));
+        } else {
+          params.set("scale", scaleMode);
+          params.set("target", String(readNumber(p.target)));
+          params.set("water", String(readNumber(p.water)));
+          params.set("salt", String(readNumber(p.salt)));
+          params.set("starter", String(readNumber(p.starter)));
+          params.set("starterHydration", String(readNumber(p.starterHydration) || 100));
+          params.set("fat", String(readNumber(p.fat)));
+        }
+        const url = `${window.location.pathname}?${params.toString()}`;
+        window.history.replaceState(null, "", url);
+      }
+
+      function restoreFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        const urlMode = params.get("mode");
+        if (urlMode === "weights" || urlMode === "percentages") {
+          mode = urlMode;
+        }
+        const urlScale = params.get("scale");
+        if (urlScale === "flour" || urlScale === "totalDough") {
+          scaleMode = urlScale;
+        }
+
+        if (mode === "weights") {
+          if (params.get("flour")) w.flour!.value = params.get("flour")!;
+          if (params.get("water")) w.water!.value = params.get("water")!;
+          if (params.get("salt")) w.salt!.value = params.get("salt")!;
+          if (params.get("starter")) w.starter!.value = params.get("starter")!;
+          if (params.get("starterHydration")) w.starterHydration!.value = params.get("starterHydration")!;
+          if (params.get("fat")) w.fat!.value = params.get("fat")!;
+        } else {
+          if (params.get("target")) p.target!.value = params.get("target")!;
+          if (params.get("water")) p.water!.value = params.get("water")!;
+          if (params.get("salt")) p.salt!.value = params.get("salt")!;
+          if (params.get("starter")) p.starter!.value = params.get("starter")!;
+          if (params.get("starterHydration")) p.starterHydration!.value = params.get("starterHydration")!;
+          if (params.get("fat")) p.fat!.value = params.get("fat")!;
+        }
+
+        applyMode();
+        applyScaleMode();
+        recalculate();
+      }
+      function applyTabState(tab: HTMLElement, selected: boolean) {
+        tab.classList.toggle("bg-white", selected);
+        tab.classList.toggle("shadow-sm", selected);
+        // Keep text-color classes mutually exclusive to avoid Tailwind order conflicts.
+        tab.classList.remove("text-stone-600", "text-stone-900", "text-stone-500");
+        tab.classList.add(selected ? "text-stone-900" : "text-stone-500");
+      }
+
+      function applyMode() {
+        modeTabs.forEach((tab) => {
+          const tabMode = tab.dataset.modeTab as Mode;
+          const selected = tabMode === mode;
+          tab.setAttribute("aria-selected", String(selected));
+          applyTabState(tab, selected);
+        });
+        weightsPanel?.classList.toggle("hidden", mode !== "weights");
+        percentagesPanel?.classList.toggle("hidden", mode !== "percentages");
+      }
+
+      function applyScaleMode() {
+        scaleTabs.forEach((tab) => {
+          const tabScale = tab.dataset.scaleTab as ScaleMode;
+          const selected = tabScale === scaleMode;
+          tab.setAttribute("aria-checked", String(selected));
+          applyTabState(tab, selected);
+        });
+        if (targetText) {
+          targetText.textContent =
+            scaleMode === "flour" ? "Base Flour Weight (g)" : "Total Dough Weight (g)";
+        }
+      }
+      modeTabs.forEach((tab) => {
+        tab.addEventListener("click", () => {
+          mode = tab.dataset.modeTab as Mode;
+          applyMode();
+          recalculate();
+        });
+      });
+
+      scaleTabs.forEach((tab) => {
+        tab.addEventListener("click", () => {
+          scaleMode = tab.dataset.scaleTab as ScaleMode;
+          applyScaleMode();
+          recalculate();
+        });
+      });
+
+      const allInputs = [
+        ...Object.values(w),
+        ...Object.values(p),
+      ].filter((el): el is HTMLInputElement => el !== null);
+
+      allInputs.forEach((input) => {
+        input.addEventListener("input", recalculate);
+      });
+
+      if (copyButton) {
+        copyButton.addEventListener("click", async () => {
+          const url = window.location.href;
+          try {
+            await navigator.clipboard.writeText(url);
+          } catch {
+            const textarea = document.createElement("textarea");
+            textarea.value = url;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand("copy");
+            document.body.removeChild(textarea);
+          }
+          if (copyLabel) {
+            const original = copyLabel.textContent;
+            copyLabel.textContent = "Copied!";
+            window.setTimeout(() => {
+              if (copyLabel) copyLabel.textContent = original;
+            }, 2000);
+          }
+        });
+      }
+
+      restoreFromUrl();
+    </script>
+  </main>
+</BaseLayout>
